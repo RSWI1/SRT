@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <!-- FAVICON -->
-    <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.jsdelivr.net/gh/RSWI1/RSView@main/favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.jsdelivr.net/gh/RSWI1/RSView@main/android-chrome-180x180.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.jsdelivr.net/gh/RSWI1/RSView@main/srt-translator-favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.jsdelivr.net/gh/RSWI1/RSView@main/srt-translator-180x180.png">
     
 <title>SRT Translator</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -18,6 +18,7 @@
   --btn-bg:#1a1a1a;--btn-fg:#fff;--btn-hover:#333;
   --green:#1d9e75;--green-hover:#0f6e56;--red:#e24b4a;
   --badge-bg:#f0eeff;--badge-fg:#7B6FFF;
+  --lane-a:#7B6FFF;--lane-b:#1d9e75;
 }
 .dark{
   --bg:#0d0d0f;--surface:#111115;--border:#2a2a32;--border2:#2a2a32;
@@ -26,6 +27,7 @@
   --btn-bg:#e8e8f0;--btn-fg:#0d0d0f;--btn-hover:#ccccd8;
   --green:#1d9e75;--green-hover:#0f6e56;--red:#e24b4a;
   --badge-bg:#2a2040;--badge-fg:#a89fff;
+  --lane-a:#8f84ff;--lane-b:#2bb88b;
 }
 body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:2rem 1rem;transition:background .2s,color .2s}
 .wrap{max-width:720px;margin:0 auto}
@@ -75,6 +77,18 @@ h1{font-size:22px;font-weight:600}
 .preview-cell{background:var(--surface);padding:8px 12px;font-size:12px;line-height:1.5}
 .preview-cell.orig{color:var(--sub)}
 .preview-cell.trans{color:var(--text);font-weight:500}
+.preview{position:relative}
+.preview-header{z-index:1}
+.preview-header .ph-right{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.preview-cell.pending{color:var(--faint);font-weight:400;font-style:italic}
+.preview-row.current .preview-cell{background:var(--input-bg)}
+@keyframes cellFlash{from{background:var(--badge-bg)}to{background:var(--surface)}}
+.preview-cell.fresh{animation:cellFlash .9s ease}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.3}}
+.live-badge{display:none;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border:none;background:none;cursor:pointer;color:var(--red);padding:0}
+.live-badge .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:livePulse 1.2s ease infinite}
+.live-badge.paused{color:var(--muted)}
+.live-badge.paused .dot{animation:none}
 .download-btn{width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;margin-top:1rem;display:none}
 .download-btn:hover{background:var(--green-hover)}
 .status-msg{font-size:12px;margin-top:6px;min-height:16px}
@@ -100,6 +114,30 @@ h1{font-size:22px;font-weight:600}
 .alert-detail{font-size:12px;opacity:.85;margin-top:2px;font-weight:400}
 .alert-dismiss{background:none;border:none;cursor:pointer;color:inherit;opacity:.5;font-size:16px;padding:0;line-height:1;flex-shrink:0}
 .alert-dismiss:hover{opacity:1}
+.progress-bar-bg{display:flex;gap:2px}
+.pseg{height:100%;background:var(--input-bg);overflow:hidden}
+.pseg .progress-bar{border-radius:0}
+.progress-bar.lane-a{background:var(--lane-a)}
+.progress-bar.lane-b{background:var(--lane-b)}
+.lane-a{--lane:var(--lane-a)}.lane-b{--lane:var(--lane-b)}
+.dual-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--input-bg);border:0.5px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:1rem}
+.dual-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.dual-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.switch{position:relative;width:38px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:background .2s}
+.switch .slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.switch input:checked+.slider{background:var(--lane-a)}
+.switch input:checked+.slider:before{transform:translateX(16px)}
+.lane-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--lane);margin-bottom:6px;padding-left:8px;border-left:3px solid var(--lane)}
+.eng-btn.disabled{opacity:.35;cursor:not-allowed}
+.eng-btn.disabled:hover{background:var(--surface)}
+.split-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.split-row input[type=range]{flex:1;accent-color:var(--lane-a)}
+.split-tag{font-size:11px;font-weight:700;color:#fff;background:var(--lane);border-radius:4px;padding:1px 6px}
+.split-label{font-size:12px;color:var(--sub);margin-bottom:1rem}
+.preview-row.lane-a .orig,.preview-row.lane-b .orig{box-shadow:inset 3px 0 0 var(--lane)}
+.preview-divider{background:var(--preview-bg);color:var(--lane);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 12px;border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border)}
 .retry-badge{display:inline-block;font-size:11px;font-weight:600;background:rgba(0,0,0,.08);border-radius:4px;padding:1px 6px;margin-left:6px}
 </style>
 </head>
@@ -138,34 +176,35 @@ h1{font-size:22px;font-weight:600}
       <button class="swap-btn" onclick="swapLangs()" title="Swap languages"><i class="ti ti-arrows-exchange" style="font-size:16px"></i></button>
       <div class="lang-box" id="tgt-box">Arabic</div>
     </div>
-    <div class="engines">
-      <div class="eng-btn active" onclick="setEngine('lingva')" id="e-lingva">
-        <span class="eng-name">Lingva</span>
-        <span class="eng-desc">Free · Google proxy · No limit</span>
+    <div class="dual-row">
+      <div>
+        <div class="dual-title"><i class="ti ti-columns-2"></i> Dual mode</div>
+        <div class="dual-sub">Split the file and run two engines in parallel</div>
       </div>
-      <div class="eng-btn" onclick="setEngine('mymemory')" id="e-mymemory">
-        <span class="eng-name">MyMemory</span>
-        <span class="eng-desc">Free · 5k chars/day</span>
+      <label class="switch"><input type="checkbox" id="dual-toggle" onchange="toggleDual(this.checked)"><span class="slider"></span></label>
+    </div>
+    <div class="lane-label lane-a" id="label-a" style="display:none">Engine A · first part</div>
+    <div class="engines" id="engines-a"></div>
+    <div id="dual-panel" style="display:none">
+      <div class="lane-label lane-b">Engine B · second part</div>
+      <div class="engines" id="engines-b"></div>
+      <div class="split-row">
+        <span class="split-tag lane-a">A</span>
+        <input type="range" id="split" min="10" max="90" step="5" value="50" oninput="setSplit(this.value)">
+        <span class="split-tag lane-b">B</span>
       </div>
-      <div class="eng-btn" onclick="setEngine('claude')" id="e-claude">
-        <span class="eng-name">Claude AI</span>
-        <span class="eng-desc">Best quality · Uses quota</span>
-      </div>
-      <div class="eng-btn" onclick="setEngine('kimi')" id="e-kimi">
-        <span class="eng-name">Kimi AI</span>
-        <span class="eng-desc">Moonshot · Great quality</span>
-      </div>
+      <div class="split-label" id="split-label"></div>
     </div>
     <div class="claude-key-row" id="claude-key-row">
       <input type="password" id="claude-key" placeholder="Paste your Anthropic API key (sk-ant-...)">
       <div class="key-hint">Your key is never stored — used only for this session in your browser.</div>
     </div>
-    <div class="claude-key-row" id="kimi-key-row">
+    <div class="claude-key-row" id="tplus-key-row">
       <div style="position:relative">
-        <input type="password" id="kimi-key" placeholder="Paste your Moonshot API key (sk-…)" oninput="validateKimiKey(this)">
-        <span id="kimi-key-status" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:600;pointer-events:none"></span>
+        <input type="password" id="tplus-key" placeholder="Paste your TranslatePlus API key" oninput="validateTplusKey(this)">
+        <span id="tplus-key-status" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:600;pointer-events:none"></span>
       </div>
-      <div class="key-hint" id="kimi-key-hint">Get your key at <a href="https://platform.moonshot.ai" target="_blank" style="color:inherit">platform.moonshot.ai</a>. Never stored — session only.</div>
+      <div class="key-hint" id="tplus-key-hint">Get your key at <a href="https://translateplus.io" target="_blank" style="color:inherit">translateplus.io</a>. Never stored — session only.</div>
     </div>
   </div>
 
@@ -185,7 +224,7 @@ h1{font-size:22px;font-weight:600}
       <i class="ti ti-language"></i> Translate
     </button>
     <div class="progress-wrap" id="prog-wrap">
-      <div class="progress-bar-bg"><div class="progress-bar" id="pbar"></div></div>
+      <div class="progress-bar-bg" id="pbar-bg"></div>
       <div class="progress-label" id="plabel">0 / 0</div>
     </div>
     <div class="status-msg" id="status"></div>
@@ -204,6 +243,7 @@ const ENCODINGS=['utf-8','windows-1256','iso-8859-6'];
 // Theme
 let dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 applyTheme();
+document.addEventListener('DOMContentLoaded',()=>{renderEngineGrids();updateKeyRows();updateSplitLabel();});
 function toggleTheme(){dark=!dark;applyTheme();}
 function applyTheme(){
   document.body.classList.toggle('dark',dark);
@@ -235,6 +275,7 @@ function loadFile(f){
     document.getElementById('finfo').style.display='flex';
     document.getElementById('drop').style.display='none';
     document.getElementById('trans-btn').disabled=false;
+    updateSplitLabel();
     setStatus('');
   };
   r.readAsArrayBuffer(f);
@@ -275,60 +316,167 @@ function swapLangs(){
   document.getElementById('tgt-box').textContent=direction.tgt==='ar'?'Arabic':'English';
 }
 
-function setEngine(e){
-  engine=e;
-  document.querySelectorAll('.eng-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('e-'+e).classList.add('active');
-  document.getElementById('claude-key-row').style.display=e==='claude'?'block':'none';
-  document.getElementById('kimi-key-row').style.display=e==='kimi'?'block':'none';
+/* ── Engines & dual mode ── */
+const ENGINES={
+  lingva:  {name:'Lingva',       desc:'Free · Google proxy · No limit', key:null},
+  mymemory:{name:'MyMemory',     desc:'Free · 5k chars/day',            key:null},
+  claude:  {name:'Claude AI',    desc:'Best quality · Uses quota',      key:'claude'},
+  tplus:   {name:'TranslatePlus',desc:'API key · Batch · Fast',         key:'tplus'}
+};
+let engineB='mymemory', dual=false, splitPct=50, lanes=[];
+
+function renderEngineGrids(){
+  const grid=(lane,cur,other)=>Object.entries(ENGINES).map(([id,e])=>{
+    const dis=lane==='b'&&id===other;
+    return `<div class="eng-btn${id===cur?' active':''}${dis?' disabled':''}" onclick="${dis?'':`setEngine('${id}','${lane}')`}" title="${dis?'Already used as Engine A':''}">
+      <span class="eng-name">${e.name}</span><span class="eng-desc">${e.desc}</span></div>`;
+  }).join('');
+  document.getElementById('engines-a').innerHTML=grid('a',engine,null);
+  document.getElementById('engines-b').innerHTML=grid('b',engineB,engine);
 }
+
+function setEngine(e,lane='a'){
+  if(translating)return;
+  if(lane==='b'){if(e===engine)return;engineB=e;}
+  else{
+    engine=e;
+    if(engineB===engine)engineB=Object.keys(ENGINES).find(k=>k!==engine);
+  }
+  renderEngineGrids();updateKeyRows();updateSplitLabel();
+}
+
+function toggleDual(on){
+  if(translating){document.getElementById('dual-toggle').checked=dual;return;}
+  dual=on;
+  document.getElementById('dual-panel').style.display=dual?'block':'none';
+  document.getElementById('label-a').style.display=dual?'block':'none';
+  updateKeyRows();updateSplitLabel();
+}
+
+function setSplit(v){splitPct=+v;updateSplitLabel();}
+
+function splitIndex(){
+  const n=subs.length;
+  return Math.min(n-1,Math.max(1,Math.round(n*splitPct/100)));
+}
+
+function updateSplitLabel(){
+  const el=document.getElementById('split-label');if(!el)return;
+  const a=ENGINES[engine].name,b=ENGINES[engineB].name;
+  if(subs.length<2){el.textContent=`${a} ${splitPct}% · ${b} ${100-splitPct}%`;return;}
+  const k=splitIndex();
+  el.textContent=`${a}: lines 1–${k} (${k}) · ${b}: lines ${k+1}–${subs.length} (${subs.length-k})`;
+}
+
+function updateKeyRows(){
+  const used=new Set([engine,...(dual?[engineB]:[])].map(e=>ENGINES[e].key).filter(Boolean));
+  document.getElementById('claude-key-row').style.display=used.has('claude')?'block':'none';
+  document.getElementById('tplus-key-row').style.display=used.has('tplus')?'block':'none';
+}
+
+function keyProblem(eng){
+  if(eng==='claude'&&!document.getElementById('claude-key').value.trim())
+    return['Missing API Key','Please enter your Anthropic API key above.'];
+  if(eng==='tplus'){
+    const k=document.getElementById('tplus-key').value.trim();
+    if(!k)return['Missing API Key','Please enter your TranslatePlus API key above.'];
+    if(k.length<16)return['Key Too Short',`TranslatePlus key is only ${k.length} characters — it may have been truncated.`];
+  }
+  return null;
+}
+
+function laneTag(lane){return dual?`[${lane.id} · ${ENGINES[lane.engine].name}] `:'';}
 
 function setStatus(msg,type=''){
   const el=document.getElementById('status');
   el.textContent=msg;el.className='status-msg'+(type?' '+type:'');
 }
 
-function updateProgress(done,total){
-  const pct=Math.round(done/total*100);
-  document.getElementById('pbar').style.width=pct+'%';
-  document.getElementById('plabel').textContent=done+' / '+total+' subtitles';
+function laneProgress(lane,done){lane.done=Math.min(done,lane.hi-lane.lo);updateProgress();}
+
+function buildProgressBars(){
+  const bg=document.getElementById('pbar-bg');
+  bg.innerHTML=lanes.map(l=>`<div class="pseg" style="flex:${l.hi-l.lo}"><div class="progress-bar lane-${l.id.toLowerCase()}" id="pbar-${l.id}"></div></div>`).join('');
+}
+
+function updateProgress(){
+  const total=subs.length;
+  let done=0;
+  for(const l of lanes){
+    done+=l.done;
+    const b=document.getElementById('pbar-'+l.id);
+    if(b)b.style.width=Math.round(l.done/(l.hi-l.lo)*100)+'%';
+  }
+  const per=dual?' · '+lanes.map(l=>`${l.id} ${ENGINES[l.engine].name} ${l.done}/${l.hi-l.lo}`).join(' · '):'';
+  document.getElementById('plabel').textContent=`${done} / ${total} subtitles${per}`;
+  syncLivePreview();
 }
 
 async function startTranslation(){
   if(!subs.length||translating)return;
+
+  const useDual=dual&&subs.length>=2;
+  const k=useDual?splitIndex():subs.length;
+  lanes=[{id:'A',engine,lo:0,hi:k,done:0}];
+  if(useDual)lanes.push({id:'B',engine:engineB,lo:k,hi:subs.length,done:0});
+
+  dismissAlert();
+  for(const l of lanes){
+    const p=keyProblem(l.engine);
+    if(p){showAlert('err',laneTag(l)+p[0],p[1]);return;}
+  }
+
   translating=true;
   const btn=document.getElementById('trans-btn');
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Translating…';
   document.getElementById('prog-wrap').style.display='block';
-  document.getElementById('preview').style.display='none';
   document.getElementById('dl-btn').style.display='none';
-  setStatus('');updateProgress(0,subs.length);dismissAlert();
+  subs.forEach(s=>{s.translated='';});
+  buildProgressBars();
+  initLivePreview();
+  setStatus('');updateProgress();
 
-  let failed=0;
-  if(engine==='claude'){
-    await translateAllClaude();
-  } else if(engine==='kimi'){
-    await translateAllKimi();
-  } else {
-    for(let i=0;i<subs.length;i++){
-      try{
-        subs[i].translated=engine==='lingva'
-          ?await translateLingva(subs[i].text)
-          :await translateMyMemory(subs[i].text);
-        updateProgress(i+1,subs.length);
-        if(engine==='mymemory')await sleep(250);
-      }catch{
-        subs[i].translated=subs[i].text;failed++;
-        updateProgress(i+1,subs.length);
-      }
-    }
-  }
+  const results=await Promise.all(lanes.map(l=>runLane(l).catch(err=>({failed:l.hi-l.lo-l.done,critical:false,err}))));
 
-  renderPreview();
+  subs.forEach(s=>{if(!s.translated)s.translated=s.text;});
+  translating=false;
+  updateProgress();
+  setLiveBadge(false);
   document.getElementById('dl-btn').style.display='flex';
   btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Translate again';
-  translating=false;
-  setStatus(failed?`Done — ${failed} entries kept original (engine limit reached)`:'Translation complete!','ok');
+
+  const failed=results.reduce((a,r)=>a+(r.failed||0),0);
+  const critical=results.some(r=>r.critical);
+  const parts=dual?' — '+lanes.map((l,i)=>`${l.id}: ${(l.hi-l.lo)-(results[i].failed||0)}/${l.hi-l.lo}`).join(', '):'';
+  if(failed)setStatus(`Done — ${failed} entr${failed===1?'y':'ies'} kept original${parts}`,'err');
+  else setStatus('Translation complete!'+parts,'ok');
+  if(!critical&&failed)showAlert('warn','Partial Translation',
+    `${failed} subtitle entr${failed===1?'y':'ies'} could not be translated and kept the original text.`);
+  else if(!critical)dismissAlert();
+}
+
+function runLane(lane){
+  switch(lane.engine){
+    case 'claude':return runClaude(lane);
+    case 'tplus': return runTplus(lane);
+    default:      return runLineEngine(lane);
+  }
+}
+
+async function runLineEngine(lane){
+  let failed=0;
+  for(let i=lane.lo;i<lane.hi;i++){
+    try{
+      subs[i].translated=lane.engine==='lingva'
+        ?await translateLingva(subs[i].text)
+        :await translateMyMemory(subs[i].text);
+      if(lane.engine==='mymemory')await sleep(250);
+    }catch{
+      subs[i].translated=subs[i].text;failed++;
+    }
+    laneProgress(lane,i+1-lane.lo);
+  }
+  return{failed,critical:false};
 }
 
 async function translateLingva(text){
@@ -352,198 +500,183 @@ async function translateMyMemory(text){
   throw new Error('MyMemory failed');
 }
 
-async function translateAllClaude(){
+/* ── TranslatePlus (https://docs.translateplus.io) ──
+   POST https://api.translateplus.io/v2/translate        {text,source,target}   → {translations:{translation}}
+   POST https://api.translateplus.io/v2/translate/batch  {texts,source,target}  → array of translations (same order)
+   Auth: X-API-KEY header */
+const TPLUS_BASE='https://api.translateplus.io/v2';
+
+/* Normalise a single translation item (string or object) to text */
+function tplusItemText(it){
+  if(it==null)return null;
+  if(typeof it==='string')return it;
+  return it.translation??it.translatedText??it.translated_text??it.text??it.translations?.translation??null;
+}
+
+/* Extract an ordered array of strings from a batch response, tolerant of shape */
+function tplusBatchList(d){
+  const cands=[d?.translations,d?.results,d?.data?.translations,d?.data,d?.translations?.translations,d?.translations?.translation,d];
+  for(const c of cands){
+    if(Array.isArray(c)){
+      const out=c.map(tplusItemText);
+      if(out.every(x=>typeof x==='string'))return out;
+    }
+  }
+  return null;
+}
+
+async function tplusFetch(path,body,key){
+  const r=await fetch(TPLUS_BASE+path,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-API-KEY':key},
+    body:JSON.stringify(body)
+  });
+  let d=null;try{d=await r.json();}catch{}
+  if(!r.ok){
+    const apiMsg=d?.detail?.message||d?.detail||d?.error?.message||d?.error||d?.message||'';
+    const e=new Error(`HTTP ${r.status}${apiMsg?' — '+(typeof apiMsg==='string'?apiMsg:JSON.stringify(apiMsg)):''}`);
+    e.status=r.status;e.apiMsg=typeof apiMsg==='string'?apiMsg:JSON.stringify(apiMsg);
+    throw e;
+  }
+  return d;
+}
+
+
+async function runClaude(lane){
   const key=document.getElementById('claude-key').value.trim();
-  if(!key){setStatus('Please enter your Anthropic API key','err');translating=false;return;}
   const BATCH=15;
   const srcName=direction.src==='en'?'English':'Arabic';
   const tgtName=direction.tgt==='ar'?'Arabic':'English';
-  for(let i=0;i<subs.length;i+=BATCH){
-    const chunk=subs.slice(i,i+BATCH);
+  let failed=0;
+  for(let i=lane.lo;i<lane.hi;i+=BATCH){
+    const end=Math.min(i+BATCH,lane.hi);
+    const chunk=subs.slice(i,end);
     const numbered=chunk.map((s,j)=>`[${j+1}] ${s.text}`).join('\n');
     try{
       const r=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
         body:JSON.stringify({
           model:'claude-sonnet-4-20250514',max_tokens:2000,
           messages:[{role:'user',content:`Translate each subtitle line from ${srcName} to ${tgtName}. Return ONLY the numbered lines in the same format, no extra text:\n\n${numbered}`}]
         })
       });
       const d=await r.json();
-      if(d.error){setStatus('Claude error: '+d.error.message,'err');break;}
+      if(d.error){
+        showAlert('err',laneTag(lane)+'Claude error',d.error.message||'Unknown error');
+        return{failed:failed+(lane.hi-i),critical:true};
+      }
       const result=d.content[0].text;
       chunk.forEach((_,j)=>{
         const m=result.match(new RegExp(`\\[${j+1}\\]\\s*([\\s\\S]*?)(?=\\[${j+2}\\]|$)`));
         subs[i+j].translated=m?m[1].trim():subs[i+j].text;
+        if(!m)failed++;
       });
     }catch{
       chunk.forEach((_,j)=>{subs[i+j].translated=subs[i+j].text;});
+      failed+=chunk.length;
     }
-    updateProgress(Math.min(i+BATCH,subs.length),subs.length);
+    laneProgress(lane,end-lane.lo);
   }
+  return{failed,critical:false};
 }
 
-async function translateAllKimi(){
-  const key=document.getElementById('kimi-key').value.trim();
-  if(!key){showAlert('err','Missing API Key','Please enter your Moonshot (Kimi) API key above.');translating=false;return;}
+async function runTplus(lane){
+  const key=document.getElementById('tplus-key').value.trim();
+  const BATCH=25,MAX_RETRIES=3;
+  const src=direction.src,tgt=direction.tgt,tag=laneTag(lane);
+  let failed=0,critical=false,batchSupported=true;
 
-  /* ── Key format pre-check ── */
-  if(!key.startsWith('sk-')){
-    showAlert('err','Invalid Key Format',
-      `Moonshot API keys must start with "sk-". Your key starts with "${key.slice(0,6)}…" — please re-copy it from platform.moonshot.ai.`);
-    translating=false;return;
-  }
-  if(key.length<32){
-    showAlert('err','Key Too Short',
-      `This key is only ${key.length} characters — it may have been truncated when copying. Full Moonshot keys are typically 48+ characters.`);
-    translating=false;return;
-  }
-
-  const BATCH=15,MAX_RETRIES=3;
-  const srcName=direction.src==='en'?'English':'Arabic';
-  const tgtName=direction.tgt==='ar'?'Arabic':'English';
-  let totalFailed=0,criticalError=false;
-
-  dismissAlert();
-
-  for(let i=0;i<subs.length;i+=BATCH){
-    if(criticalError)break;
-    const chunk=subs.slice(i,i+BATCH);
-    const numbered=chunk.map((s,j)=>`[${j+1}] ${s.text}`).join('\n');
+  for(let i=lane.lo;i<lane.hi&&!critical;i+=BATCH){
+    const end=Math.min(i+BATCH,lane.hi);
+    const chunk=subs.slice(i,end);
     let success=false,lastErrMsg='Unknown error';
 
-    for(let attempt=0;attempt<MAX_RETRIES&&!success&&!criticalError;attempt++){
+    for(let attempt=0;attempt<MAX_RETRIES&&!success&&!critical;attempt++){
       if(attempt>0){
         const delay=2000*attempt;
-        setStatus(`Kimi: retry attempt ${attempt+1}/${MAX_RETRIES} — waiting ${delay/1000}s…`,'');
+        setStatus(`${tag}TranslatePlus: retry ${attempt+1}/${MAX_RETRIES} — waiting ${delay/1000}s…`);
         await sleep(delay);
       }
       try{
-        const r=await fetch('https://api.moonshot.cn/v1/chat/completions',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-          body:JSON.stringify({
-            model:'moonshot-v1-8k',
-            messages:[
-              {role:'system',content:`You are a professional subtitle translator. Translate from ${srcName} to ${tgtName}. Preserve the exact numbered format.`},
-              {role:'user',content:`Translate each subtitle line from ${srcName} to ${tgtName}. Return ONLY the numbered lines in the same format, no extra text:\n\n${numbered}`}
-            ]
-          })
-        });
-
-        /* ── HTTP-level errors ── */
-        if(!r.ok){
-          let apiMsg='';
-          try{const eb=await r.json();apiMsg=eb?.error?.message||'';}catch{}
-          switch(r.status){
-            case 401:
-              showAlert('err','Invalid API Key (401)',
-                (apiMsg||'Key was rejected by Moonshot.')+' Re-copy your key from platform.moonshot.ai — make sure you get the full key with no extra spaces.');
-              criticalError=true;break;
-            case 402:
-              showAlert('err','Insufficient Balance',
-                'Your Moonshot account has insufficient credits. Top up at platform.moonshot.ai to continue.');
-              criticalError=true;break;
-            case 403:
-              showAlert('err','Access Denied (403)',
-                apiMsg||'Your API key does not have permission for this resource. Check your key settings.');
-              criticalError=true;break;
-            case 429:{
-              const wait=4000+attempt*3000;
-              lastErrMsg=`Rate limited (429)${apiMsg?' — '+apiMsg:''}`;
-              if(attempt<MAX_RETRIES-1){
-                setStatus(`Kimi: rate limit hit — waiting ${wait/1000}s before retry…`,'');
-                await sleep(wait);continue;
-              } else {
-                showAlert('warn','Rate Limit Reached',
-                  `Too many requests — Kimi is throttling your key. Wait a moment then try again.${apiMsg?' ('+apiMsg+')':''}`);
-              }
-              break;}
-            case 500:case 502:case 503:case 504:
-              lastErrMsg=`Kimi server error (${r.status})${apiMsg?' — '+apiMsg:''}`;
-              break;
-            default:
-              lastErrMsg=`HTTP ${r.status}${apiMsg?' — '+apiMsg:''}`;
+        let list=null;
+        if(batchSupported){
+          const d=await tplusFetch('/translate/batch',{texts:chunk.map(s=>s.text),source:src,target:tgt},key);
+          list=tplusBatchList(d);
+          if(!list||list.length!==chunk.length){
+            console.warn('TranslatePlus batch response not understood, falling back to single:',d);
+            batchSupported=false;list=null;
           }
-          if(criticalError)break;
-          throw new Error(lastErrMsg);
         }
-
-        /* ── Body-level errors ── */
-        const d=await r.json();
-        if(d.error){
-          const msg=d.error.message||'Unknown API error';
-          const code=d.error.type||d.error.code||'';
-          showAlert('err',`Kimi API Error${code?' ('+code+')':''}`,msg);
-          criticalError=true;break;
+        if(!list){
+          list=[];
+          for(const s of chunk){
+            const d=await tplusFetch('/translate',{text:s.text,source:src,target:tgt},key);
+            const t=tplusItemText(d?.translations)??tplusItemText(d);
+            if(typeof t!=='string')throw new Error('Empty response from TranslatePlus — no translation returned');
+            list.push(t);
+          }
         }
-        const result=d.choices?.[0]?.message?.content;
-        if(!result){
-          lastErrMsg='Empty response from Kimi — no content returned';
-          throw new Error(lastErrMsg);
-        }
-
-        /* ── Parse translations ── */
-        chunk.forEach((_,j)=>{
-          const m=result.match(new RegExp(`\\[${j+1}\\]\\s*([\\s\\S]*?)(?=\\[${j+2}\\]|$)`));
-          subs[i+j].translated=m?m[1].trim():subs[i+j].text;
-        });
+        chunk.forEach((s,j)=>{subs[i+j].translated=(list[j]||'').trim()||s.text;});
         success=true;
-
       }catch(err){
-        if(criticalError)break;
-        lastErrMsg=err.message||'Network error — check your connection';
-        if(attempt===MAX_RETRIES-1){
-          /* Network error hint on last attempt */
-          if(lastErrMsg.toLowerCase().includes('fetch')||lastErrMsg.toLowerCase().includes('network')){
-            showAlert('warn','Network Error',
-              'Could not reach api.moonshot.cn. Check your internet connection or VPN settings.');
-          }
+        const st=err.status,apiMsg=err.apiMsg||'';
+        switch(st){
+          case 401:
+            showAlert('err',tag+'Invalid API Key (401)',(apiMsg||'Key was rejected by TranslatePlus.')+' Re-copy your key from translateplus.io — no extra spaces.');
+            critical=true;break;
+          case 402:
+            showAlert('err',tag+'Insufficient Credits (402)',apiMsg||'Your TranslatePlus account is out of credits. Top up at translateplus.io.');
+            critical=true;break;
+          case 403:
+            showAlert('err',tag+'Access Denied (403)',apiMsg||'Your API key does not have permission for this resource.');
+            critical=true;break;
+          case 400:case 422:
+            showAlert('err',tag+`Bad Request (${st})`,apiMsg||'TranslatePlus rejected the request (check language pair / text).');
+            critical=true;break;
+          case 429:{
+            lastErrMsg=`Rate limited (429)${apiMsg?' — '+apiMsg:''}`;
+            const wait=4000+attempt*3000;
+            if(attempt<MAX_RETRIES-1){
+              setStatus(`${tag}TranslatePlus: rate limit hit — waiting ${wait/1000}s before retry…`);
+              await sleep(wait);
+            } else {
+              showAlert('warn',tag+'Rate Limit Reached',`Too many requests — TranslatePlus is throttling your key.${apiMsg?' ('+apiMsg+')':''}`);
+            }
+            break;}
+          default:
+            lastErrMsg=err.message||'Network error — check your connection';
+            if(attempt===MAX_RETRIES-1&&/fetch|network/i.test(lastErrMsg)){
+              showAlert('warn',tag+'Network Error','Could not reach api.translateplus.io. Check your connection, VPN, or browser CORS restrictions.');
+            }
         }
       }
     }
 
-    if(!success&&!criticalError){
+    if(critical){failed+=lane.hi-i;break;}
+    if(!success){
       chunk.forEach((_,j)=>{subs[i+j].translated=subs[i+j].text;});
-      totalFailed+=chunk.length;
-      setStatus(`⚠️ Batch ${Math.floor(i/BATCH)+1} failed after ${MAX_RETRIES} attempts — ${lastErrMsg}. Kept original text.`,'err');
+      failed+=chunk.length;
+      setStatus(`${tag}⚠️ Batch failed after ${MAX_RETRIES} attempts — ${lastErrMsg}. Kept original text.`,'err');
     }
-
-    if(!criticalError) updateProgress(Math.min(i+BATCH,subs.length),subs.length);
+    laneProgress(lane,end-lane.lo);
   }
-
-  /* ── Wrap-up ── */
-  subs.forEach(s=>{if(!s.translated)s.translated=s.text;});
-  updateProgress(subs.length,subs.length);
-  translating=false;
-
-  if(criticalError) return; /* error banner already shown */
-  if(totalFailed>0){
-    showAlert('warn','Partial Translation',
-      `${totalFailed} subtitle entr${totalFailed===1?'y':'ies'} could not be translated and kept the original text.`);
-  } else {
-    dismissAlert();
-  }
+  return{failed,critical};
 }
 
-function validateKimiKey(input){
+function validateTplusKey(input){
   const v=input.value.trim();
-  const badge=document.getElementById('kimi-key-status');
-  const hint=document.getElementById('kimi-key-hint');
-  if(!v){badge.textContent='';hint.style.color='';return;}
-  if(!v.startsWith('sk-')){
-    badge.textContent='✗ bad prefix';badge.style.color='var(--red)';
-    hint.textContent='Keys must start with "sk-" — re-copy from platform.moonshot.ai';
-    hint.style.color='var(--red)';
-  } else if(v.length<32){
+  const badge=document.getElementById('tplus-key-status');
+  const hint=document.getElementById('tplus-key-hint');
+  const defHint='Get your key at <a href="https://translateplus.io" target="_blank" style="color:inherit">translateplus.io</a>. Never stored — session only.';
+  if(!v){badge.textContent='';hint.innerHTML=defHint;hint.style.color='';return;}
+  if(v.length<16){
     badge.textContent=`${v.length} chars — too short`;badge.style.color='var(--red)';
-    hint.textContent='Key seems truncated. Full keys are 48+ characters.';
+    hint.textContent='Key seems truncated — re-copy it from translateplus.io.';
     hint.style.color='var(--red)';
   } else {
     badge.textContent=`✓ ${v.length} chars`;badge.style.color='var(--green)';
-    hint.innerHTML='Get your key at <a href="https://platform.moonshot.ai" target="_blank" style="color:inherit">platform.moonshot.ai</a>. Never stored — session only.';
-    hint.style.color='';
+    hint.innerHTML=defHint;hint.style.color='';
   }
 }
 
@@ -562,15 +695,93 @@ function dismissAlert(){
   document.getElementById('alert-banner').style.display='none';
 }
 
-function renderPreview(){
+
+/* ── Live preview (lane-aware) ── */
+let pvRows=[],pvCells=[],pvFollow=true,pvCurrent=[],pvListening=false,pvLastLane=0;
+
+function laneOf(i){for(let k=0;k<lanes.length;k++)if(i>=lanes[k].lo&&i<lanes[k].hi)return k;return 0;}
+
+function initLivePreview(){
   const el=document.getElementById('preview');
-  const rows=subs.slice(0,50).map(s=>`
-    <div class="preview-row">
-      <div class="preview-cell orig" dir="${direction.src==='ar'?'rtl':'ltr'}">${esc(s.text)}</div>
-      <div class="preview-cell trans" dir="${direction.tgt==='ar'?'rtl':'ltr'}">${esc(s.translated||s.text)}</div>
-    </div>`).join('');
-  el.innerHTML=`<div class="preview-header"><span>Original</span><span>Translated</span></div>${rows}`;
-  el.style.display='block';
+  const sd=direction.src==='ar'?'rtl':'ltr',td=direction.tgt==='ar'?'rtl':'ltr';
+  const multi=lanes.length>1;
+  let html='';
+  subs.forEach((s,i)=>{
+    const L=lanes[laneOf(i)];
+    if(multi&&i===L.lo)html+=`<div class="preview-divider lane-${L.id.toLowerCase()}">Engine ${L.id} · ${ENGINES[L.engine].name} — lines ${L.lo+1}–${L.hi}</div>`;
+    html+=`<div class="preview-row${multi?' lane-'+L.id.toLowerCase():''}">
+      <div class="preview-cell orig" dir="${sd}">${esc(s.text)}</div>
+      <div class="preview-cell trans pending" dir="${td}">Translating…</div>
+    </div>`;
+  });
+  el.innerHTML=`<div class="preview-header"><span>Original</span><span class="ph-right">Translated
+    <button class="live-badge" id="live-badge" onclick="resumeFollow()" title="Auto-scroll"><span class="dot"></span><span id="live-text">Live</span></button></span></div>${html}`;
+  el.style.display='block';el.scrollTop=0;
+  pvRows=[...el.querySelectorAll('.preview-row')];
+  pvCells=pvRows.map(r=>r.querySelector('.trans'));
+  pvFollow=true;pvCurrent=lanes.map(()=>-1);pvLastLane=0;
+  setLiveBadge(true);
+  if(!pvListening){
+    const pause=()=>{if(translating&&pvFollow){pvFollow=false;setLiveBadge(true);}};
+    el.addEventListener('wheel',pause,{passive:true});
+    el.addEventListener('touchstart',pause,{passive:true});
+    el.addEventListener('mousedown',e=>{if(e.target===el)pause();});
+    pvListening=true;
+  }
+}
+
+function syncLivePreview(){
+  if(!pvCells.length)return;
+  for(let i=0;i<subs.length;i++){
+    const c=pvCells[i];if(!c)continue;
+    const t=subs[i].translated;
+    if(t&&c.dataset.done!=='1'){
+      c.textContent=t;c.dataset.done='1';
+      c.classList.remove('pending');c.classList.add('fresh');
+      setTimeout(()=>c.classList.remove('fresh'),900);
+      pvLastLane=laneOf(i);
+    }
+  }
+  /* Highlight next pending row in each lane */
+  lanes.forEach((L,k)=>{
+    let next=-1;
+    if(translating)for(let i=L.lo;i<L.hi;i++){if(pvCells[i]?.dataset.done!=='1'){next=i;break;}}
+    if(pvCurrent[k]!==next){
+      if(pvRows[pvCurrent[k]])pvRows[pvCurrent[k]].classList.remove('current');
+      if(pvRows[next])pvRows[next].classList.add('current');
+      pvCurrent[k]=next;
+    }
+  });
+  /* Follow the lane that just produced output */
+  if(pvFollow&&translating){
+    const r=pvRows[pvCurrent[pvLastLane]]||pvRows[pvCurrent.find(x=>x>=0)];
+    if(r)scrollPreviewTo(r);
+  }
+}
+
+function scrollPreviewTo(row){
+  const el=document.getElementById('preview');
+  const target=row.offsetTop-el.clientHeight/2+row.offsetHeight/2;
+  el.scrollTo({top:Math.max(0,target),behavior:'smooth'});
+}
+
+function resumeFollow(){
+  if(!translating)return;
+  pvFollow=true;setLiveBadge(true);
+  const r=pvRows[pvCurrent[pvLastLane]];
+  if(r)scrollPreviewTo(r);
+}
+
+function setLiveBadge(on){
+  const b=document.getElementById('live-badge');if(!b)return;
+  if(!on){
+    b.style.display='none';pvRows.forEach(r=>r.classList.remove('current'));
+    pvCells.forEach((c,i)=>{if(c.dataset.done!=='1'){c.textContent=subs[i]?.text||'';c.title='Not translated — original kept';}});
+    return;
+  }
+  b.style.display='inline-flex';
+  b.classList.toggle('paused',!pvFollow);
+  document.getElementById('live-text').textContent=pvFollow?'Live':'Paused · Resume';
 }
 
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
